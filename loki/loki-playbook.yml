@@ -1,0 +1,41 @@
+---
+- hosts: loki_machine
+  become: yes
+  tasks:
+  - name: install unzip package (yum install unzip)
+    yum: 
+      name: unzip 
+      state : latest
+  - name: create directory to loki binaries
+    file:
+      path: /opt/loki
+      state: directory
+      owner: ustock
+      group: ustock
+  - name: Download and install (unzip) Loki Binary
+    become_user: ustock
+    unarchive:
+      src: https://github.com/grafana/loki/releases/download/v2.2.1/loki-linux-amd64.zip
+      dest: /opt/loki
+      remote_src: yes
+  - name: Download Loki config file
+    become_user: ustock
+    get_url:
+      url: https://raw.githubusercontent.com/grafana/loki/master/cmd/loki/loki-local-config.yaml
+      dest: /opt/loki/loki-config.yaml
+      mode: '0664'
+  - name: Configure LOKI as a service (add loki.service file to /etc/systemd/system/)
+    copy:
+      src: loki.service
+      dest: /etc/systemd/system/loki.service
+      mode: '0644'
+  - name: systemd daemon reload after adding LOKI service
+    systemd:
+      state: restarted
+      daemon_reload: yes
+      name: loki.service
+  - name: start LOKI service
+    systemd:
+      name: loki.service
+      state: started
+      enabled: yes

@@ -1,0 +1,11 @@
+[Unit]
+Description=Loki service
+After=network.target
+
+[Service]
+Type=simple
+User=ustock
+ExecStart=/opt/loki/loki-linux-amd64 -config.file /opt/loki/loki-config.yaml
+
+[Install]
+WantedBy=multi-user.target

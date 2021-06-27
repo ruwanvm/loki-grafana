@@ -1,0 +1,28 @@
+---
+- hosts: grafana_machine
+  become: yes
+  tasks:
+  - name: Upgrade all packages (yum update -y)
+    yum:
+      name: '*'
+      state: latest
+  - name: Add grafana repo
+    copy: 
+      src: grafana.repo
+      dest: /etc/yum.repos.d/grafana.repo
+      mode: '0644'
+  - name: install grafana (yum -install grafana)
+    yum: 
+      name: grafana 
+      state : latest
+  - name: systemd daemon reload after installing grafana-server
+    systemd:
+      state: restarted
+      daemon_reload: yes
+      name: grafana-server
+  - name: start grafana-server
+    systemd:
+      name: grafana-server
+      state: started
+      enabled: yes 
+      # Enable grafana-server to start at boot
